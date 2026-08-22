@@ -6,7 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../providers/dashboard_provider.dart';
 
-final _moneda = NumberFormat.currency(locale: 'es_HN', symbol: 'L. ');
+final _moneda = NumberFormat.currency(locale: 'en_US', symbol: 'L.');
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});

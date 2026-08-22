@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../providers/clientes_provider.dart';
 
-final _moneda = NumberFormat.currency(locale: 'es_HN', symbol: 'L. ');
+final _moneda = NumberFormat.currency(locale: 'en_US', symbol: 'L.');
 
 class ClienteDetalleScreen extends ConsumerWidget {
   final String clienteId;

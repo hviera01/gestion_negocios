@@ -7,7 +7,7 @@ import '../../../../core/utils/mayusculas_formatter.dart';
 import '../../data/credito_model.dart';
 import '../../providers/creditos_provider.dart';
 
-final _moneda = NumberFormat.currency(locale: 'es_HN', symbol: 'L. ');
+final _moneda = NumberFormat.currency(locale: 'en_US', symbol: 'L.');
 
 class RegistrarAbonoDialog extends ConsumerStatefulWidget {
   final CreditoModel credito;

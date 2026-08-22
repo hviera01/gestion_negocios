@@ -7,7 +7,7 @@ import '../../providers/creditos_provider.dart';
 import '../widgets/credito_manual_form_dialog.dart';
 import 'credito_detalle_screen.dart';
 
-final _moneda = NumberFormat.currency(locale: 'es_HN', symbol: 'L. ');
+final _moneda = NumberFormat.currency(locale: 'en_US', symbol: 'L.');
 
 class CreditosScreen extends ConsumerWidget {
   const CreditosScreen({super.key});

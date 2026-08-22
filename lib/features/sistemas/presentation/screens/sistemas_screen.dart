@@ -6,7 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../providers/sistemas_provider.dart';
 import '../widgets/sistema_cliente_form_dialog.dart';
 
-final _moneda = NumberFormat.currency(locale: 'es_HN', symbol: 'L. ');
+final _moneda = NumberFormat.currency(locale: 'en_US', symbol: 'L.');
 
 class SistemasScreen extends ConsumerWidget {
   const SistemasScreen({super.key});

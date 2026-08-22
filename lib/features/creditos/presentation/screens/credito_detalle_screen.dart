@@ -8,7 +8,7 @@ import '../../data/credito_model.dart';
 import '../../providers/creditos_provider.dart';
 import '../widgets/registrar_abono_dialog.dart';
 
-final _moneda = NumberFormat.currency(locale: 'es_HN', symbol: 'L. ');
+final _moneda = NumberFormat.currency(locale: 'en_US', symbol: 'L.');
 final _fecha = DateFormat('dd/MM/yyyy');
 
 class CreditoDetalleScreen extends ConsumerWidget {
