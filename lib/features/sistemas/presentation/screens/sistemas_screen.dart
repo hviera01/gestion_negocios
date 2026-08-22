@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../data/sistema_cliente_model.dart';
 import '../../providers/sistemas_provider.dart';
+import '../widgets/nuevo_sistema_dialog.dart';
 import '../widgets/sistema_cliente_form_dialog.dart';
 
 final _moneda = NumberFormat.currency(locale: 'en_US', symbol: 'L.');
@@ -25,7 +27,39 @@ class SistemasScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: const Text('VENDER SISTEMA'),
       ),
-      body: vendidosAsync.when(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+            child: Row(
+              children: [
+                const Text('CATÁLOGO', style: TextStyle(color: AppColors.textoTerciario, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () async {
+                    await showDialog<bool>(context: context, builder: (_) => const NuevoSistemaDialog());
+                  },
+                  icon: const Icon(Icons.add_business_rounded, size: 16),
+                  label: const Text('NUEVO SISTEMA', style: TextStyle(fontSize: 12)),
+                  style: TextButton.styleFrom(foregroundColor: AppColors.acento),
+                ),
+              ],
+            ),
+          ),
+          Expanded(child: _ListaVendidos(vendidosAsync: vendidosAsync)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ListaVendidos extends StatelessWidget {
+  final AsyncValue<List<SistemaClienteModel>> vendidosAsync;
+  const _ListaVendidos({required this.vendidosAsync});
+
+  @override
+  Widget build(BuildContext context) {
+    return vendidosAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.error))),
         data: (lista) {
@@ -65,8 +99,7 @@ class SistemasScreen extends ConsumerWidget {
             },
           );
         },
-      ),
-    );
+      );
   }
 }
 

@@ -8,6 +8,21 @@ class SistemasRepository {
     return (res as List).map((e) => SistemaModel.fromMap(e as Map<String, dynamic>)).toList();
   }
 
+  Future<SistemaModel> crearSistema({
+    required String nombre,
+    required String slug,
+    String? githubOwner,
+    String? githubRepo,
+  }) async {
+    final res = await RpcClient.call('crear_sistema', {
+      'p_nombre': nombre,
+      'p_slug': slug,
+      'p_github_owner': githubOwner,
+      'p_github_repo': githubRepo,
+    });
+    return SistemaModel.fromMap(res as Map<String, dynamic>);
+  }
+
   Future<List<SistemaClienteModel>> listarVendidos({String? clienteId}) async {
     final res = await RpcClient.call('listar_sistemas_cliente', {'p_cliente_id': clienteId});
     return (res as List).map((e) => SistemaClienteModel.fromMap(e as Map<String, dynamic>)).toList();
