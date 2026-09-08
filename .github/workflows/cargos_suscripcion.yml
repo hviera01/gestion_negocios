@@ -1,0 +1,21 @@
+name: Generar cargos mensuales de suscripciones
+
+# El dia 1 de cada mes le suma la mensualidad a los clientes con sistema
+# vendido en modalidad suscripcion (pago inicial + mensualidad indefinida).
+
+on:
+  schedule:
+    - cron: '0 6 1 * *'
+  workflow_dispatch: {}
+
+jobs:
+  generar-cargos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar a generar_cargos_mensuales
+        run: |
+          curl -sf -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/generar_cargos_mensuales" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}'

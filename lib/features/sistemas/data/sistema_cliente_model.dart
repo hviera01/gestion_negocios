@@ -6,9 +6,10 @@ class SistemaClienteModel {
   final String sistemaSlug;
   final DateTime fechaVenta;
   final String tipoVenta;
-  final double montoTotal;
+  final double? montoTotal;
   final double? pagoInicial;
   final int? numeroCuotas;
+  final double? montoMensual;
   final bool activo;
 
   const SistemaClienteModel({
@@ -19,9 +20,10 @@ class SistemaClienteModel {
     required this.sistemaSlug,
     required this.fechaVenta,
     required this.tipoVenta,
-    required this.montoTotal,
+    this.montoTotal,
     this.pagoInicial,
     this.numeroCuotas,
+    this.montoMensual,
     required this.activo,
   });
 
@@ -33,9 +35,10 @@ class SistemaClienteModel {
         sistemaSlug: map['sistema_slug'] as String,
         fechaVenta: DateTime.parse(map['fecha_venta'] as String),
         tipoVenta: map['tipo_venta'] as String,
-        montoTotal: (map['monto_total'] as num).toDouble(),
+        montoTotal: (map['monto_total'] as num?)?.toDouble(),
         pagoInicial: (map['pago_inicial'] as num?)?.toDouble(),
         numeroCuotas: map['numero_cuotas'] as int?,
+        montoMensual: (map['monto_mensual'] as num?)?.toDouble(),
         activo: map['activo'] as bool? ?? true,
       );
 }

@@ -33,9 +33,10 @@ class SistemasRepository {
     required String sistemaId,
     required DateTime fechaVenta,
     required String tipoVenta,
-    required double montoTotal,
+    double? montoTotal,
     double? pagoInicial,
     int? numeroCuotas,
+    double? montoMensual,
   }) {
     return RpcClient.call('crear_sistema_cliente', {
       'p_cliente_id': clienteId,
@@ -45,6 +46,7 @@ class SistemasRepository {
       'p_monto_total': montoTotal,
       'p_pago_inicial': pagoInicial,
       'p_numero_cuotas': numeroCuotas,
+      'p_monto_mensual': montoMensual,
     });
   }
 }

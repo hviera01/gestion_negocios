@@ -22,6 +22,7 @@ class _SistemaClienteFormDialogState extends ConsumerState<SistemaClienteFormDia
   final _montoCtrl = TextEditingController();
   final _pagoInicialCtrl = TextEditingController();
   final _cuotasCtrl = TextEditingController();
+  final _montoMensualCtrl = TextEditingController();
   bool _guardando = false;
   String? _error;
 
@@ -30,21 +31,44 @@ class _SistemaClienteFormDialogState extends ConsumerState<SistemaClienteFormDia
     _montoCtrl.dispose();
     _pagoInicialCtrl.dispose();
     _cuotasCtrl.dispose();
+    _montoMensualCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _guardar() async {
-    final monto = double.tryParse(_montoCtrl.text.trim());
-    if (_cliente == null || _sistema == null || monto == null) {
-      setState(() => _error = 'Completá cliente, sistema y monto');
+    if (_cliente == null || _sistema == null) {
+      setState(() => _error = 'Completá cliente y sistema');
       return;
     }
+
     final esMensualidades = _tipoVenta == 'mensualidades';
-    final cuotas = int.tryParse(_cuotasCtrl.text.trim());
-    if (esMensualidades && (cuotas == null || cuotas <= 0)) {
-      setState(() => _error = 'Indicá el número de cuotas');
-      return;
+    final esSuscripcion = _tipoVenta == 'suscripcion';
+
+    double? montoTotal;
+    int? cuotas;
+    double? montoMensual;
+
+    if (esSuscripcion) {
+      montoMensual = double.tryParse(_montoMensualCtrl.text.trim());
+      if (montoMensual == null || montoMensual <= 0) {
+        setState(() => _error = 'Indicá el monto de la mensualidad');
+        return;
+      }
+    } else {
+      montoTotal = double.tryParse(_montoCtrl.text.trim());
+      if (montoTotal == null) {
+        setState(() => _error = 'Indicá el monto total');
+        return;
+      }
+      if (esMensualidades) {
+        cuotas = int.tryParse(_cuotasCtrl.text.trim());
+        if (cuotas == null || cuotas <= 0) {
+          setState(() => _error = 'Indicá el número de cuotas');
+          return;
+        }
+      }
     }
+
     setState(() {
       _guardando = true;
       _error = null;
@@ -55,9 +79,10 @@ class _SistemaClienteFormDialogState extends ConsumerState<SistemaClienteFormDia
             sistemaId: _sistema!.id,
             fechaVenta: _fechaVenta,
             tipoVenta: _tipoVenta,
-            montoTotal: monto,
-            pagoInicial: esMensualidades ? double.tryParse(_pagoInicialCtrl.text.trim()) : null,
+            montoTotal: montoTotal,
+            pagoInicial: (esMensualidades || esSuscripcion) ? double.tryParse(_pagoInicialCtrl.text.trim()) : null,
             numeroCuotas: esMensualidades ? cuotas : null,
+            montoMensual: esSuscripcion ? montoMensual : null,
           );
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
@@ -72,6 +97,8 @@ class _SistemaClienteFormDialogState extends ConsumerState<SistemaClienteFormDia
   Widget build(BuildContext context) {
     final clientesAsync = ref.watch(clientesProvider);
     final catalogoAsync = ref.watch(catalogoSistemasProvider);
+    final esMensualidades = _tipoVenta == 'mensualidades';
+    final esSuscripcion = _tipoVenta == 'suscripcion';
 
     return AlertDialog(
       backgroundColor: AppColors.superficie,
@@ -111,42 +138,63 @@ class _SistemaClienteFormDialogState extends ConsumerState<SistemaClienteFormDia
               RadioGroup<String>(
                 groupValue: _tipoVenta,
                 onChanged: (v) => setState(() => _tipoVenta = v!),
-                child: Row(
+                child: Column(
                   children: [
-                    Expanded(
-                      child: RadioListTile<String>(
-                        value: 'contado',
-                        title: const Text('CONTADO', style: TextStyle(fontSize: 13)),
-                        contentPadding: EdgeInsets.zero,
-                      ),
+                    RadioListTile<String>(
+                      value: 'contado',
+                      title: const Text('CONTADO', style: TextStyle(fontSize: 13)),
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
                     ),
-                    Expanded(
-                      child: RadioListTile<String>(
-                        value: 'mensualidades',
-                        title: const Text('MENSUALIDADES', style: TextStyle(fontSize: 13)),
-                        contentPadding: EdgeInsets.zero,
-                      ),
+                    RadioListTile<String>(
+                      value: 'mensualidades',
+                      title: const Text('MENSUALIDADES (CUOTAS FIJAS)', style: TextStyle(fontSize: 13)),
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                    ),
+                    RadioListTile<String>(
+                      value: 'suscripcion',
+                      title: const Text('SUSCRIPCIÓN (MENSUALIDAD INDEFINIDA)', style: TextStyle(fontSize: 13)),
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
                     ),
                   ],
                 ),
               ),
-              TextField(
-                controller: _montoCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(hintText: 'MONTO TOTAL *'),
-              ),
-              if (_tipoVenta == 'mensualidades') ...[
+              const SizedBox(height: 6),
+              if (!esSuscripcion) ...[
+                TextField(
+                  controller: _montoCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(hintText: 'MONTO TOTAL *'),
+                ),
                 const SizedBox(height: 10),
+              ],
+              if (esMensualidades || esSuscripcion) ...[
                 TextField(
                   controller: _pagoInicialCtrl,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(hintText: 'PAGO INICIAL (OPCIONAL)'),
                 ),
                 const SizedBox(height: 10),
+              ],
+              if (esMensualidades)
                 TextField(
                   controller: _cuotasCtrl,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(hintText: 'NÚMERO DE CUOTAS *'),
+                ),
+              if (esSuscripcion)
+                TextField(
+                  controller: _montoMensualCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(hintText: 'MENSUALIDAD *'),
+                ),
+              if (esSuscripcion) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'EL PAGO INICIAL SE ASUME COBRADO AL FIRMAR. LA MENSUALIDAD SE VA SUMANDO SOLA CADA MES AL SALDO DEL CLIENTE.',
+                  style: TextStyle(color: AppColors.textoTerciario, fontSize: 11),
                 ),
               ],
               if (_error != null) ...[

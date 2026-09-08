@@ -1,0 +1,22 @@
+name: Mantener activo el proyecto de Supabase
+
+# Supabase (plan gratis) pausa el proyecto automaticamente despues de unos dias
+# sin actividad. Este workflow le manda un ping de lectura cada 3 dias para
+# que nunca se quede inactivo tanto tiempo, sin necesidad de usar la app.
+
+on:
+  schedule:
+    - cron: '0 12 */3 * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping a Supabase
+        run: |
+          curl -sf -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/hay_usuario_configurado" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}'
