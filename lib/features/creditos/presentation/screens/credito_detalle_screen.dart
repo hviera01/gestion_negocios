@@ -43,11 +43,23 @@ class CreditoDetalleScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Text(
+              'INICIÓ EL ${_fecha.format(credito.fechaRegistro)}'
+              '${credito.fechaVencimiento != null ? ' · VENCE ${_fecha.format(credito.fechaVencimiento!)}' : ''}',
+              style: const TextStyle(color: AppColors.textoSecundario, fontSize: 12),
+            ),
+          ),
           cuotasAsync.when(
             loading: () => const SizedBox.shrink(),
             error: (_, _) => const SizedBox.shrink(),
             data: (cuotas) {
               if (cuotas.isEmpty) return const SizedBox.shrink();
+              final hoy = DateTime.now();
+              final pendientes = cuotas.where((c) => !c.pagada).toList()
+                ..sort((a, b) => a.numero.compareTo(b.numero));
+              final proxima = pendientes.isEmpty ? null : pendientes.first;
               return Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -55,23 +67,43 @@ class CreditoDetalleScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text('CUOTAS', style: TextStyle(fontWeight: FontWeight.w700)),
+                      if (proxima != null) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: (proxima.fechaVencimiento.isBefore(hoy) ? AppColors.error : AppColors.advertencia)
+                                .withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${proxima.fechaVencimiento.isBefore(hoy) ? 'VENCIDA' : 'PRÓXIMO PAGO'}: '
+                            '${_moneda.format(proxima.monto)} · ${_fecha.format(proxima.fechaVencimiento)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color: proxima.fechaVencimiento.isBefore(hoy) ? AppColors.error : AppColors.advertencia,
+                            ),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 10),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: cuotas
-                            .map((c) => Chip(
-                                  label: Text('#${c.numero} · ${_moneda.format(c.monto)}'),
-                                  avatar: Icon(
-                                    c.pagada ? Icons.check_circle : Icons.schedule,
-                                    size: 16,
-                                    color: c.pagada ? AppColors.exito : AppColors.advertencia,
-                                  ),
-                                  backgroundColor: c.pagada
-                                      ? AppColors.exito.withValues(alpha: 0.12)
-                                      : AppColors.superficieAlta,
-                                ))
-                            .toList(),
+                        children: cuotas.map((c) {
+                          final vencida = !c.pagada && c.fechaVencimiento.isBefore(hoy);
+                          final color = c.pagada ? AppColors.exito : (vencida ? AppColors.error : AppColors.advertencia);
+                          return Chip(
+                            label: Text('#${c.numero} · ${_moneda.format(c.monto)} · ${_fecha.format(c.fechaVencimiento)}'),
+                            avatar: Icon(
+                              c.pagada ? Icons.check_circle : (vencida ? Icons.error : Icons.schedule),
+                              size: 16,
+                              color: color,
+                            ),
+                            backgroundColor: color.withValues(alpha: 0.12),
+                          );
+                        }).toList(),
                       ),
                     ],
                   ),

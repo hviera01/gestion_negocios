@@ -9,6 +9,21 @@ import '../widgets/nuevo_sistema_dialog.dart';
 import '../widgets/sistema_cliente_form_dialog.dart';
 
 final _moneda = NumberFormat.currency(locale: 'en_US', symbol: 'L.');
+final _fecha = DateFormat('dd/MM/yyyy');
+
+String _descripcionVenta(SistemaClienteModel sc) {
+  switch (sc.tipoVenta) {
+    case 'contado':
+      return 'CONTADO · ${_moneda.format(sc.montoTotal ?? 0)}';
+    case 'suscripcion':
+      final inicial = sc.pagoInicial != null && sc.pagoInicial! > 0 ? 'INICIAL ${_moneda.format(sc.pagoInicial)} · ' : '';
+      return '$inicial${_moneda.format(sc.montoMensual ?? 0)}/MES · INICIA ${_fecha.format(sc.fechaVenta)}';
+    case 'mensualidades':
+    default:
+      final cuotas = sc.numeroCuotas != null ? ' · ${sc.numeroCuotas} CUOTAS' : '';
+      return 'MENSUALIDADES · ${_moneda.format(sc.montoTotal ?? 0)}$cuotas · INICIA ${_fecha.format(sc.fechaVenta)}';
+  }
+}
 
 class SistemasScreen extends ConsumerWidget {
   const SistemasScreen({super.key});
@@ -88,8 +103,7 @@ class _ListaVendidos extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '${sc.tipoVenta == 'contado' ? 'CONTADO' : 'MENSUALIDADES'} · ${_moneda.format(sc.montoTotal)}'
-                        '${sc.numeroCuotas != null ? ' · ${sc.numeroCuotas} CUOTAS' : ''}',
+                        _descripcionVenta(sc),
                         style: const TextStyle(color: AppColors.textoSecundario, fontSize: 13),
                       ),
                     ],
