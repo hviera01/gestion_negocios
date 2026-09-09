@@ -52,7 +52,23 @@ class CreditosScreen extends ConsumerWidget {
                     'ORIGEN: ${c.origen.toUpperCase()} · TOTAL ${_moneda.format(c.montoTotal)}',
                     style: const TextStyle(color: AppColors.textoSecundario, fontSize: 12),
                   ),
-                  trailing: const Icon(Icons.chevron_right, color: AppColors.textoTerciario),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (c.origen == 'manual')
+                        IconButton(
+                          icon: const Icon(Icons.edit_rounded, size: 18, color: AppColors.textoTerciario),
+                          onPressed: () async {
+                            final editado = await showDialog<bool>(
+                              context: context,
+                              builder: (_) => CreditoManualFormDialog(existente: c),
+                            );
+                            if (editado == true) ref.invalidate(creditosProvider);
+                          },
+                        ),
+                      const Icon(Icons.chevron_right, color: AppColors.textoTerciario),
+                    ],
+                  ),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => CreditoDetalleScreen(credito: c)),
                   ),

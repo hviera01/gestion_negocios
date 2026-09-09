@@ -20,12 +20,14 @@ class ReportesFallosRepository {
     String? estado,
     bool? cobrado,
     double? montoCobrado,
+    String? descripcion,
   }) {
     return RpcClient.call('actualizar_reporte_fallo', {
       'p_id': id,
       'p_estado': estado,
       'p_cobrado': cobrado,
       'p_monto_cobrado': montoCobrado,
+      'p_descripcion': descripcion,
     });
   }
 

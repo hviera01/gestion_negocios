@@ -7,10 +7,12 @@ import '../../../clientes/data/cliente_model.dart';
 import '../../../clientes/providers/clientes_provider.dart';
 import '../../../sistemas/data/sistema_cliente_model.dart';
 import '../../../sistemas/providers/sistemas_provider.dart';
+import '../../data/reporte_fallo_model.dart';
 import '../../providers/reportes_fallos_provider.dart';
 
 class ReporteFalloFormDialog extends ConsumerStatefulWidget {
-  const ReporteFalloFormDialog({super.key});
+  final ReporteFalloModel? existente;
+  const ReporteFalloFormDialog({super.key, this.existente});
 
   @override
   ConsumerState<ReporteFalloFormDialog> createState() => _ReporteFalloFormDialogState();
@@ -23,6 +25,16 @@ class _ReporteFalloFormDialogState extends ConsumerState<ReporteFalloFormDialog>
   bool _guardando = false;
   String? _error;
 
+  bool get _editando => widget.existente != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existente != null) {
+      _descripcionCtrl.text = widget.existente!.descripcion;
+    }
+  }
+
   @override
   void dispose() {
     _descripcionCtrl.dispose();
@@ -30,7 +42,7 @@ class _ReporteFalloFormDialogState extends ConsumerState<ReporteFalloFormDialog>
   }
 
   Future<void> _guardar() async {
-    if (_cliente == null || _descripcionCtrl.text.trim().isEmpty) {
+    if (_descripcionCtrl.text.trim().isEmpty || (!_editando && _cliente == null)) {
       setState(() => _error = 'Completá el cliente y la descripción');
       return;
     }
@@ -39,11 +51,16 @@ class _ReporteFalloFormDialogState extends ConsumerState<ReporteFalloFormDialog>
       _error = null;
     });
     try {
-      await ref.read(reportesFallosRepositoryProvider).crear(
-            clienteId: _cliente!.id,
-            sistemaClienteId: _sistemaCliente?.id,
-            descripcion: _descripcionCtrl.text.trim(),
-          );
+      final repo = ref.read(reportesFallosRepositoryProvider);
+      if (_editando) {
+        await repo.actualizar(id: widget.existente!.id, descripcion: _descripcionCtrl.text.trim());
+      } else {
+        await repo.crear(
+          clienteId: _cliente!.id,
+          sistemaClienteId: _sistemaCliente?.id,
+          descripcion: _descripcionCtrl.text.trim(),
+        );
+      }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       setState(() {
@@ -61,44 +78,46 @@ class _ReporteFalloFormDialogState extends ConsumerState<ReporteFalloFormDialog>
     return AlertDialog(
       backgroundColor: AppColors.superficie,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: const Text('NUEVO REPORTE DE FALLO'),
+      title: Text(_editando ? 'EDITAR REPORTE' : 'NUEVO REPORTE DE FALLO'),
       content: SizedBox(
         width: 400,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              clientesAsync.when(
-                loading: () => const LinearProgressIndicator(),
-                error: (_, _) => const Text('NO SE PUDO CARGAR CLIENTES', style: TextStyle(color: AppColors.error)),
-                data: (clientes) => DropdownButtonFormField<ClienteModel>(
-                  initialValue: _cliente,
-                  decoration: const InputDecoration(hintText: 'CLIENTE'),
-                  dropdownColor: AppColors.superficieAlta,
-                  items: clientes.map((c) => DropdownMenuItem(value: c, child: Text(c.nombreNegocio))).toList(),
-                  onChanged: (v) => setState(() {
-                    _cliente = v;
-                    _sistemaCliente = null;
-                  }),
-                ),
-              ),
-              if (sistemasAsync != null) ...[
-                const SizedBox(height: 10),
-                sistemasAsync.when(
+              if (!_editando) ...[
+                clientesAsync.when(
                   loading: () => const LinearProgressIndicator(),
-                  error: (_, _) => const SizedBox.shrink(),
-                  data: (sistemas) => sistemas.isEmpty
-                      ? const SizedBox.shrink()
-                      : DropdownButtonFormField<SistemaClienteModel>(
-                          initialValue: _sistemaCliente,
-                          decoration: const InputDecoration(hintText: 'SISTEMA (OPCIONAL)'),
-                          dropdownColor: AppColors.superficieAlta,
-                          items: sistemas.map((s) => DropdownMenuItem(value: s, child: Text(s.sistemaNombre))).toList(),
-                          onChanged: (v) => setState(() => _sistemaCliente = v),
-                        ),
+                  error: (_, _) => const Text('NO SE PUDO CARGAR CLIENTES', style: TextStyle(color: AppColors.error)),
+                  data: (clientes) => DropdownButtonFormField<ClienteModel>(
+                    initialValue: _cliente,
+                    decoration: const InputDecoration(hintText: 'CLIENTE'),
+                    dropdownColor: AppColors.superficieAlta,
+                    items: clientes.map((c) => DropdownMenuItem(value: c, child: Text(c.nombreNegocio))).toList(),
+                    onChanged: (v) => setState(() {
+                      _cliente = v;
+                      _sistemaCliente = null;
+                    }),
+                  ),
                 ),
+                if (sistemasAsync != null) ...[
+                  const SizedBox(height: 10),
+                  sistemasAsync.when(
+                    loading: () => const LinearProgressIndicator(),
+                    error: (_, _) => const SizedBox.shrink(),
+                    data: (sistemas) => sistemas.isEmpty
+                        ? const SizedBox.shrink()
+                        : DropdownButtonFormField<SistemaClienteModel>(
+                            initialValue: _sistemaCliente,
+                            decoration: const InputDecoration(hintText: 'SISTEMA (OPCIONAL)'),
+                            dropdownColor: AppColors.superficieAlta,
+                            items: sistemas.map((s) => DropdownMenuItem(value: s, child: Text(s.sistemaNombre))).toList(),
+                            onChanged: (v) => setState(() => _sistemaCliente = v),
+                          ),
+                  ),
+                ],
+                const SizedBox(height: 10),
               ],
-              const SizedBox(height: 10),
               TextField(
                 controller: _descripcionCtrl,
                 textCapitalization: TextCapitalization.characters,

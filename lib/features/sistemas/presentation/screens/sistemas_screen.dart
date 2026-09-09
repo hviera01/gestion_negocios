@@ -68,12 +68,12 @@ class SistemasScreen extends ConsumerWidget {
   }
 }
 
-class _ListaVendidos extends StatelessWidget {
+class _ListaVendidos extends ConsumerWidget {
   final AsyncValue<List<SistemaClienteModel>> vendidosAsync;
   const _ListaVendidos({required this.vendidosAsync});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return vendidosAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.error))),
@@ -88,25 +88,37 @@ class _ListaVendidos extends StatelessWidget {
             itemBuilder: (context, i) {
               final sc = lista[i];
               return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(sc.sistemaNombre.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                          ),
-                          _ChipVersion(slug: sc.sistemaSlug),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        _descripcionVenta(sc),
-                        style: const TextStyle(color: AppColors.textoSecundario, fontSize: 13),
-                      ),
-                    ],
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(18),
+                  onTap: () async {
+                    final editado = await showDialog<bool>(
+                      context: context,
+                      builder: (_) => SistemaClienteFormDialog(existente: sc),
+                    );
+                    if (editado == true) ref.invalidate(sistemasClienteProvider(null));
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(sc.sistemaNombre.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                            ),
+                            _ChipVersion(slug: sc.sistemaSlug),
+                            const SizedBox(width: 6),
+                            const Icon(Icons.edit_rounded, size: 16, color: AppColors.textoTerciario),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          _descripcionVenta(sc),
+                          style: const TextStyle(color: AppColors.textoSecundario, fontSize: 13),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

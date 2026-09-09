@@ -56,7 +56,22 @@ class ClientesScreen extends ConsumerWidget {
                     [if (c.nombreContacto != null) c.nombreContacto!, if (c.telefono != null) c.telefono!].join(' · '),
                     style: const TextStyle(color: AppColors.textoSecundario),
                   ),
-                  trailing: const Icon(Icons.chevron_right, color: AppColors.textoTerciario),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit_rounded, size: 18, color: AppColors.textoTerciario),
+                        onPressed: () async {
+                          final editado = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => ClienteFormDialog(existente: c),
+                          );
+                          if (editado == true) ref.invalidate(clientesProvider);
+                        },
+                      ),
+                      const Icon(Icons.chevron_right, color: AppColors.textoTerciario),
+                    ],
+                  ),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => ClienteDetalleScreen(clienteId: c.id, nombre: c.nombreNegocio)),
                   ),

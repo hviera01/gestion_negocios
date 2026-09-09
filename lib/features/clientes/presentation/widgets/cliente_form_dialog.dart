@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/mayusculas_formatter.dart';
+import '../../data/cliente_model.dart';
 import '../../providers/clientes_provider.dart';
 
 class ClienteFormDialog extends ConsumerStatefulWidget {
-  const ClienteFormDialog({super.key});
+  final ClienteModel? existente;
+  const ClienteFormDialog({super.key, this.existente});
 
   @override
   ConsumerState<ClienteFormDialog> createState() => _ClienteFormDialogState();
@@ -20,6 +22,21 @@ class _ClienteFormDialogState extends ConsumerState<ClienteFormDialog> {
   final _notasCtrl = TextEditingController();
   bool _guardando = false;
   String? _error;
+
+  bool get _editando => widget.existente != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final e = widget.existente;
+    if (e != null) {
+      _nombreCtrl.text = e.nombreNegocio;
+      _contactoCtrl.text = e.nombreContacto ?? '';
+      _telefonoCtrl.text = e.telefono ?? '';
+      _emailCtrl.text = e.email ?? '';
+      _notasCtrl.text = e.notas ?? '';
+    }
+  }
 
   @override
   void dispose() {
@@ -41,13 +58,25 @@ class _ClienteFormDialogState extends ConsumerState<ClienteFormDialog> {
       _error = null;
     });
     try {
-      await ref.read(clientesRepositoryProvider).crear(
-            nombreNegocio: _nombreCtrl.text.trim(),
-            nombreContacto: _contactoCtrl.text.trim().isEmpty ? null : _contactoCtrl.text.trim(),
-            telefono: _telefonoCtrl.text.trim().isEmpty ? null : _telefonoCtrl.text.trim(),
-            email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
-            notas: _notasCtrl.text.trim().isEmpty ? null : _notasCtrl.text.trim(),
-          );
+      final repo = ref.read(clientesRepositoryProvider);
+      if (_editando) {
+        await repo.actualizar(
+          id: widget.existente!.id,
+          nombreNegocio: _nombreCtrl.text.trim(),
+          nombreContacto: _contactoCtrl.text.trim().isEmpty ? null : _contactoCtrl.text.trim(),
+          telefono: _telefonoCtrl.text.trim().isEmpty ? null : _telefonoCtrl.text.trim(),
+          email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
+          notas: _notasCtrl.text.trim().isEmpty ? null : _notasCtrl.text.trim(),
+        );
+      } else {
+        await repo.crear(
+          nombreNegocio: _nombreCtrl.text.trim(),
+          nombreContacto: _contactoCtrl.text.trim().isEmpty ? null : _contactoCtrl.text.trim(),
+          telefono: _telefonoCtrl.text.trim().isEmpty ? null : _telefonoCtrl.text.trim(),
+          email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
+          notas: _notasCtrl.text.trim().isEmpty ? null : _notasCtrl.text.trim(),
+        );
+      }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       setState(() {
@@ -62,7 +91,7 @@ class _ClienteFormDialogState extends ConsumerState<ClienteFormDialog> {
     return AlertDialog(
       backgroundColor: AppColors.superficie,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: const Text('NUEVO CLIENTE'),
+      title: Text(_editando ? 'EDITAR CLIENTE' : 'NUEVO CLIENTE'),
       content: SizedBox(
         width: 380,
         child: Column(

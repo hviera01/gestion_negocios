@@ -23,6 +23,20 @@ class CreditosRepository {
     });
   }
 
+  Future<void> actualizarManual({
+    required String id,
+    required double montoTotal,
+    DateTime? fechaVencimiento,
+    String? notas,
+  }) {
+    return RpcClient.call('actualizar_credito_manual', {
+      'p_id': id,
+      'p_monto_total': montoTotal,
+      'p_fecha_vencimiento': fechaVencimiento?.toIso8601String().split('T').first,
+      'p_notas': notas,
+    });
+  }
+
   Future<List<CuotaModel>> listarCuotas(String creditoId) async {
     final res = await RpcClient.call('listar_cuotas', {'p_credito_id': creditoId});
     return (res as List).map((e) => CuotaModel.fromMap(e as Map<String, dynamic>)).toList();

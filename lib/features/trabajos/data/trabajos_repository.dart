@@ -22,4 +22,18 @@ class TrabajosRepository {
       'p_es_credito': esCredito,
     });
   }
+
+  Future<void> actualizar({
+    required String id,
+    required String descripcion,
+    required DateTime fecha,
+    required double monto,
+  }) {
+    return RpcClient.call('actualizar_trabajo', {
+      'p_id': id,
+      'p_descripcion': descripcion,
+      'p_fecha': fecha.toIso8601String().split('T').first,
+      'p_monto': monto,
+    });
+  }
 }

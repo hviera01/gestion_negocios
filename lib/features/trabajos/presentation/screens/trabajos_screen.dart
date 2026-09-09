@@ -44,16 +44,31 @@ class TrabajosScreen extends ConsumerWidget {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   title: Text(t.descripcion.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: Text(_fecha.format(t.fecha), style: const TextStyle(color: AppColors.textoSecundario, fontSize: 12)),
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        t.monto == 0 ? 'GRATIS' : _moneda.format(t.monto),
-                        style: TextStyle(fontWeight: FontWeight.w700, color: t.monto == 0 ? AppColors.textoTerciario : AppColors.acento),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            t.monto == 0 ? 'GRATIS' : _moneda.format(t.monto),
+                            style: TextStyle(fontWeight: FontWeight.w700, color: t.monto == 0 ? AppColors.textoTerciario : AppColors.acento),
+                          ),
+                          if (t.esCredito)
+                            const Text('A CRÉDITO', style: TextStyle(fontSize: 11, color: AppColors.advertencia)),
+                        ],
                       ),
-                      if (t.esCredito)
-                        const Text('A CRÉDITO', style: TextStyle(fontSize: 11, color: AppColors.advertencia)),
+                      IconButton(
+                        icon: const Icon(Icons.edit_rounded, size: 18, color: AppColors.textoTerciario),
+                        onPressed: () async {
+                          final editado = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => TrabajoFormDialog(existente: t),
+                          );
+                          if (editado == true) ref.invalidate(trabajosProvider);
+                        },
+                      ),
                     ],
                   ),
                 ),

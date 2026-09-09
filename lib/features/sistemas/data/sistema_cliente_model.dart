@@ -10,6 +10,7 @@ class SistemaClienteModel {
   final double? pagoInicial;
   final int? numeroCuotas;
   final double? montoMensual;
+  final DateTime? fechaPrimerPago;
   final bool activo;
 
   const SistemaClienteModel({
@@ -24,6 +25,7 @@ class SistemaClienteModel {
     this.pagoInicial,
     this.numeroCuotas,
     this.montoMensual,
+    this.fechaPrimerPago,
     required this.activo,
   });
 
@@ -39,6 +41,7 @@ class SistemaClienteModel {
         pagoInicial: (map['pago_inicial'] as num?)?.toDouble(),
         numeroCuotas: map['numero_cuotas'] as int?,
         montoMensual: (map['monto_mensual'] as num?)?.toDouble(),
+        fechaPrimerPago: map['fecha_primer_pago'] != null ? DateTime.parse(map['fecha_primer_pago'] as String) : null,
         activo: map['activo'] as bool? ?? true,
       );
 }

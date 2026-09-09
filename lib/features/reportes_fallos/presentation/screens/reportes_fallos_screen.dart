@@ -100,6 +100,16 @@ class _TarjetaReporte extends ConsumerWidget {
             Row(
               children: [
                 Expanded(child: Text(reporte.descripcion.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w600))),
+                IconButton(
+                  icon: const Icon(Icons.edit_rounded, size: 16, color: AppColors.textoTerciario),
+                  onPressed: () async {
+                    final editado = await showDialog<bool>(
+                      context: context,
+                      builder: (_) => ReporteFalloFormDialog(existente: reporte),
+                    );
+                    if (editado == true) ref.invalidate(reportesFallosProvider);
+                  },
+                ),
                 Chip(
                   label: Text(reporte.estado.toUpperCase(), style: const TextStyle(fontSize: 11)),
                   backgroundColor: _colorEstado(reporte.estado).withValues(alpha: 0.15),
