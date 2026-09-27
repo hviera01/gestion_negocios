@@ -1,8 +1,10 @@
 name: Mantener activo el proyecto de Supabase
 
-# Supabase (plan gratis) pausa el proyecto automaticamente despues de unos dias
-# sin actividad. Este workflow le manda un ping de lectura cada 3 dias para
-# que nunca se quede inactivo tanto tiempo, sin necesidad de usar la app.
+# El ping anterior (curl al RPC hay_usuario_configurado cada 3 días) corrió
+# sin errores hasta 2 días antes de que Supabase pausara igual el proyecto
+# por inactividad, así que simular actividad no alcanza. En vez de eso, este
+# workflow consulta el estado real por la Management API y lo reanuda si
+# ya quedó pausado.
 
 on:
   schedule:
@@ -10,13 +12,20 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  ping:
+  keepalive:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping a Supabase
+      - name: Revisar estado y reanudar si está pausado
+        env:
+          TOKEN: ${{ secrets.SUPABASE_MGMT_TOKEN }}
+          REF: lbnqcshwgpgtlpswzsut
         run: |
-          curl -sf -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/hay_usuario_configurado" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d '{}'
+          status=$(curl -sf -H "Authorization: Bearer $TOKEN" \
+            "https://api.supabase.com/v1/projects/$REF" | jq -r '.status')
+          echo "Estado actual: $status"
+          if [ "$status" != "ACTIVE_HEALTHY" ]; then
+            echo "Proyecto pausado, reanudando..."
+            curl -sf -X POST -H "Authorization: Bearer $TOKEN" \
+              -H "Content-Type: application/json" -d '{}' \
+              "https://api.supabase.com/v1/projects/$REF/restore"
+          fi
