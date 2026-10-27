@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../features/clientes/presentation/screens/clientes_screen.dart';
+import '../../features/cobros/presentation/screens/cobros_screen.dart';
 import '../../features/creditos/presentation/screens/creditos_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/reportes_fallos/presentation/screens/reportes_fallos_screen.dart';
@@ -12,6 +13,8 @@ Widget construirBodySeccion(Seccion seccion) {
   switch (seccion) {
     case Seccion.dashboard:
       return const DashboardScreen();
+    case Seccion.cobros:
+      return const CobrosScreen();
     case Seccion.clientes:
       return const ClientesScreen();
     case Seccion.sistemas:

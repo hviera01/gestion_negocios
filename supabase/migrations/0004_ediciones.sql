@@ -87,7 +87,10 @@ begin
   return v_contador;
 end; $$;
 
--- listar_sistemas_cliente: agrega fecha_primer_pago a la salida
+-- listar_sistemas_cliente: agrega fecha_primer_pago a la salida (hay que borrarla
+-- primero porque cambia el tipo de retorno, CREATE OR REPLACE no lo permite)
+drop function if exists listar_sistemas_cliente(uuid, uuid);
+
 create or replace function listar_sistemas_cliente(p_token uuid, p_cliente_id uuid default null)
 returns table (
   id uuid, cliente_id uuid, sistema_id uuid, sistema_nombre text, sistema_slug text,

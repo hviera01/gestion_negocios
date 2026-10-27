@@ -1,11 +1,11 @@
 name: Generar cargos mensuales de suscripciones
 
-# El dia 1 de cada mes le suma la mensualidad a los clientes con sistema
-# vendido en modalidad suscripcion (pago inicial + mensualidad indefinida).
+# Todos los dias carga la mensualidad de las suscripciones cuya fecha de cobro
+# ya llego (pago inicial + mensualidad indefinida).
 
 on:
   schedule:
-    - cron: '0 6 1 * *'
+    - cron: '0 6 * * *'
   workflow_dispatch: {}
 
 jobs:

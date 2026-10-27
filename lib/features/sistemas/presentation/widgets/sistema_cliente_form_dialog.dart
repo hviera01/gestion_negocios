@@ -269,7 +269,7 @@ class _SistemaClienteFormDialogState extends ConsumerState<SistemaClienteFormDia
                 const SizedBox(height: 6),
                 Text(
                   esSuscripcion
-                      ? 'SI NO LA ELEGÍS, LA MENSUALIDAD EMPIEZA A CONTAR DESDE HOY.'
+                      ? 'ESA FECHA ES EL DÍA DE COBRO DE CADA MES. SI NO LA ELEGÍS, SE USA LA FECHA DE VENTA. LA PODÉS MOVER DESPUÉS EN COBROS.'
                       : 'SI NO LA ELEGÍS, LA PRIMERA CUOTA VENCE UN MES DESPUÉS DE LA FECHA DE VENTA.',
                   style: const TextStyle(color: AppColors.textoTerciario, fontSize: 11),
                 ),

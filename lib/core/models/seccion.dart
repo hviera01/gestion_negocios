@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 enum Seccion {
   dashboard(label: 'DASHBOARD', icono: Icons.dashboard_rounded),
+  cobros(label: 'COBROS', icono: Icons.event_available_rounded),
   clientes(label: 'CLIENTES', icono: Icons.people_alt_rounded),
   sistemas(label: 'SISTEMAS VENDIDOS', icono: Icons.apps_rounded),
   trabajos(label: 'TRABAJOS', icono: Icons.build_rounded),
