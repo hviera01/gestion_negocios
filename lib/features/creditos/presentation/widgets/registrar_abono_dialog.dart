@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/mayusculas_formatter.dart';
+import '../../../../core/utils/monto_formatter.dart';
 import '../../data/credito_model.dart';
 import '../../providers/creditos_provider.dart';
 
@@ -19,9 +20,10 @@ class RegistrarAbonoDialog extends ConsumerStatefulWidget {
 
 class _RegistrarAbonoDialogState extends ConsumerState<RegistrarAbonoDialog> {
   final _montoCtrl = TextEditingController();
-  final _interesCtrl = TextEditingController(text: '0');
+  final _interesCtrl = TextEditingController(text: textoMonto(0));
   final _reciboCtrl = TextEditingController();
   String? _metodoPago;
+  DateTime _fechaPago = DateTime.now();
   bool _guardando = false;
   String? _error;
 
@@ -34,7 +36,7 @@ class _RegistrarAbonoDialogState extends ConsumerState<RegistrarAbonoDialog> {
   }
 
   Future<void> _guardar() async {
-    final monto = double.tryParse(_montoCtrl.text.trim());
+    final monto = parsearMonto(_montoCtrl.text);
     if (monto == null || monto <= 0) {
       setState(() => _error = 'Ingresá un monto válido');
       return;
@@ -47,7 +49,8 @@ class _RegistrarAbonoDialogState extends ConsumerState<RegistrarAbonoDialog> {
       await ref.read(creditosRepositoryProvider).registrarAbono(
             creditoId: widget.credito.id,
             montoAbonado: monto,
-            interes: double.tryParse(_interesCtrl.text.trim()) ?? 0,
+            interes: parsearMonto(_interesCtrl.text) ?? 0,
+            fecha: _fechaPago,
             metodoPago: _metodoPago,
             numeroRecibo: _reciboCtrl.text.trim().isEmpty ? null : _reciboCtrl.text.trim(),
           );
@@ -73,14 +76,36 @@ class _RegistrarAbonoDialogState extends ConsumerState<RegistrarAbonoDialog> {
           children: [
             TextField(
               controller: _montoCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: TextInputType.number,
+              inputFormatters: [MontoFormatter()],
               decoration: const InputDecoration(hintText: 'MONTO A ABONAR *'),
               autofocus: true,
             ),
             const SizedBox(height: 10),
+            InkWell(
+              onTap: () async {
+                final elegida = await showDatePicker(
+                  context: context,
+                  initialDate: _fechaPago,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                );
+                if (elegida != null) setState(() => _fechaPago = elegida);
+              },
+              borderRadius: BorderRadius.circular(14),
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  hintText: 'FECHA DEL PAGO',
+                  suffixIcon: Icon(Icons.calendar_today_rounded, size: 16),
+                ),
+                child: Text(DateFormat('dd/MM/yyyy').format(_fechaPago)),
+              ),
+            ),
+            const SizedBox(height: 10),
             TextField(
               controller: _interesCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: TextInputType.number,
+              inputFormatters: [MontoFormatter()],
               decoration: const InputDecoration(hintText: 'INTERÉS (OPCIONAL)'),
             ),
             const SizedBox(height: 10),

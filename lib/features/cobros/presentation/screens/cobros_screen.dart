@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../creditos/presentation/screens/credito_detalle_screen.dart';
 import '../../../creditos/providers/creditos_provider.dart';
+import '../../../sistemas/presentation/widgets/estado_servicio_dialog.dart';
+import '../../../sistemas/providers/sistemas_provider.dart';
 import '../../../dashboard/providers/dashboard_provider.dart';
 import '../../data/cobro_model.dart';
 import '../../providers/cobros_provider.dart';
@@ -158,13 +161,37 @@ class _Grupo extends StatelessWidget {
   }
 }
 
-class _TarjetaCobro extends StatelessWidget {
+class _TarjetaCobro extends ConsumerWidget {
   final CobroModel cobro;
   final VoidCallback onCambio;
   const _TarjetaCobro({required this.cobro, required this.onCambio});
 
+  Future<void> _abrirEstadoServicio(BuildContext context, WidgetRef ref) async {
+    final ventas = await ref.read(sistemasClienteProvider(null).future);
+    final coincidencias = ventas.where((v) => v.id == cobro.ventaId);
+    if (coincidencias.isEmpty || !context.mounted) return;
+    final cambiado = await showDialog<bool>(
+      context: context,
+      builder: (_) => EstadoServicioDialog(venta: coincidencias.first),
+    );
+    if (cambiado == true) {
+      ref.invalidate(sistemasClienteProvider(null));
+      onCambio();
+    }
+  }
+
+  Future<void> _abrirHistorial(BuildContext context, WidgetRef ref) async {
+    final creditos = await ref.read(creditosProvider.future);
+    final coincidencias = creditos.where((c) => c.id == cobro.creditoId);
+    if (coincidencias.isEmpty || !context.mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => CreditoDetalleScreen(credito: coincidencias.first)),
+    );
+    onCambio();
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final color = _colorEstado(cobro.estado);
     final detalle = cobro.esSuscripcion
         ? '${cobro.concepto.toUpperCase()} · MENSUALIDAD'
@@ -236,6 +263,21 @@ class _TarjetaCobro extends StatelessWidget {
                   icon: const Icon(Icons.edit_calendar_rounded, size: 18),
                   label: const Text('FECHA'),
                 ),
+                IconButton(
+                  tooltip: 'Historial de pagos',
+                  icon: const Icon(Icons.receipt_long_rounded, size: 20, color: AppColors.textoSecundario),
+                  onPressed: () => _abrirHistorial(context, ref),
+                ),
+                if (cobro.ventaId != null)
+                  IconButton(
+                    tooltip: 'Estado del sistema del cliente',
+                    icon: Icon(
+                      cobro.estadoServicio == 'bloqueado' ? Icons.lock_rounded : Icons.lock_open_rounded,
+                      size: 20,
+                      color: colorEstadoServicio(cobro.estadoServicio ?? 'activo'),
+                    ),
+                    onPressed: () => _abrirEstadoServicio(context, ref),
+                  ),
               ],
             ),
           ],

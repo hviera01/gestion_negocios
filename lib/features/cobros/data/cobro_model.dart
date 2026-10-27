@@ -12,6 +12,8 @@ class CobroModel {
   final int? numeroCuota;
   final int? totalCuotas;
   final double saldoPendiente;
+  final String? ventaId;
+  final String? estadoServicio;
 
   const CobroModel({
     required this.tipo,
@@ -25,6 +27,8 @@ class CobroModel {
     this.numeroCuota,
     this.totalCuotas,
     required this.saldoPendiente,
+    this.ventaId,
+    this.estadoServicio,
   });
 
   bool get esSuscripcion => tipo == 'suscripcion';
@@ -56,5 +60,7 @@ class CobroModel {
         numeroCuota: map['numero_cuota'] as int?,
         totalCuotas: map['total_cuotas'] as int?,
         saldoPendiente: (map['saldo_pendiente'] as num).toDouble(),
+        ventaId: map['venta_id'] as String?,
+        estadoServicio: map['estado_servicio'] as String?,
       );
 }

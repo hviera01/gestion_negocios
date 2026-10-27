@@ -14,6 +14,7 @@ class CobrosRepository {
     required double monto,
     String? metodoPago,
     String? numeroRecibo,
+    required DateTime fecha,
   }) {
     if (cobro.esSuscripcion) {
       return RpcClient.call('registrar_pago_suscripcion', {
@@ -21,6 +22,7 @@ class CobrosRepository {
         'p_monto': monto,
         'p_metodo_pago': metodoPago,
         'p_numero_recibo': numeroRecibo,
+        'p_fecha': fecha.toIso8601String(),
       });
     }
     return RpcClient.call('registrar_abono', {
@@ -29,6 +31,7 @@ class CobrosRepository {
       'p_interes': 0,
       'p_metodo_pago': metodoPago,
       'p_numero_recibo': numeroRecibo,
+      'p_fecha': fecha.toIso8601String(),
     });
   }
 

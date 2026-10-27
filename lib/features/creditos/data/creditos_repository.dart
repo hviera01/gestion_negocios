@@ -57,6 +57,7 @@ class CreditosRepository {
     double interes = 0,
     String? metodoPago,
     String? numeroRecibo,
+    DateTime? fecha,
   }) {
     return RpcClient.call('registrar_abono', {
       'p_credito_id': creditoId,
@@ -64,6 +65,29 @@ class CreditosRepository {
       'p_interes': interes,
       'p_metodo_pago': metodoPago,
       'p_numero_recibo': numeroRecibo,
+      'p_fecha': fecha?.toIso8601String(),
     });
+  }
+
+  Future<void> editarAbono({
+    required String abonoId,
+    required DateTime fecha,
+    required double montoAbonado,
+    double interes = 0,
+    String? metodoPago,
+    String? numeroRecibo,
+  }) {
+    return RpcClient.call('editar_abono', {
+      'p_abono_id': abonoId,
+      'p_fecha': fecha.toIso8601String(),
+      'p_monto_abonado': montoAbonado,
+      'p_interes': interes,
+      'p_metodo_pago': metodoPago,
+      'p_numero_recibo': numeroRecibo,
+    });
+  }
+
+  Future<void> eliminarAbono(String abonoId) {
+    return RpcClient.call('eliminar_abono', {'p_abono_id': abonoId});
   }
 }

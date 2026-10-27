@@ -28,6 +28,14 @@ class SistemasRepository {
     return (res as List).map((e) => SistemaClienteModel.fromMap(e as Map<String, dynamic>)).toList();
   }
 
+  Future<void> cambiarEstadoServicio({required String id, required String estado, String? mensaje}) {
+    return RpcClient.call('cambiar_estado_servicio', {
+      'p_id': id,
+      'p_estado': estado,
+      'p_mensaje': (mensaje == null || mensaje.trim().isEmpty) ? null : mensaje.trim(),
+    });
+  }
+
   Map<String, dynamic> _params({
     required String clienteId,
     required String sistemaId,

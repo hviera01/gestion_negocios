@@ -6,6 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../data/credito_model.dart';
 import '../../providers/creditos_provider.dart';
+import '../widgets/editar_abono_dialog.dart';
 import '../widgets/registrar_abono_dialog.dart';
 
 final _moneda = NumberFormat.currency(locale: 'en_US', symbol: 'L.');
@@ -15,26 +16,66 @@ class CreditoDetalleScreen extends ConsumerWidget {
   final CreditoModel credito;
   const CreditoDetalleScreen({super.key, required this.credito});
 
+  void _refrescar(WidgetRef ref, String id) {
+    ref.invalidate(cuotasCreditoProvider(id));
+    ref.invalidate(abonosCreditoProvider(id));
+    ref.invalidate(creditosProvider);
+  }
+
+  Future<void> _editar(BuildContext context, WidgetRef ref, AbonoModel abono) async {
+    final ok = await showDialog<bool>(context: context, builder: (_) => EditarAbonoDialog(abono: abono));
+    if (ok == true) _refrescar(ref, abono.creditoId);
+  }
+
+  Future<void> _eliminar(BuildContext context, WidgetRef ref, AbonoModel abono) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.superficie,
+        title: const Text('ELIMINAR PAGO'),
+        content: Text(
+          'SE ELIMINA EL PAGO DE ${_moneda.format(abono.montoAbonado)} DEL ${_fecha.format(abono.fecha.toLocal())} '
+          'Y EL SALDO VUELVE A SUBIR. EN UNA SUSCRIPCIÓN, EL PRÓXIMO COBRO RETROCEDE UN MES.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('CANCELAR')),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('ELIMINAR'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar != true) return;
+    try {
+      await ref.read(creditosRepositoryProvider).eliminarAbono(abono.id);
+      _refrescar(ref, abono.creditoId);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo eliminar: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final actualLista = ref.watch(creditosProvider).value?.where((c) => c.id == credito.id);
+    final actual = (actualLista != null && actualLista.isNotEmpty) ? actualLista.first : credito;
     final cuotasAsync = ref.watch(cuotasCreditoProvider(credito.id));
     final abonosAsync = ref.watch(abonosCreditoProvider(credito.id));
 
     return Scaffold(
       backgroundColor: AppColors.fondo,
-      appBar: AppBar(title: Text('SALDO ${_moneda.format(credito.saldoPendiente)}')),
-      floatingActionButton: credito.saldoPendiente > 0
+      appBar: AppBar(title: Text('SALDO ${_moneda.format(actual.saldoPendiente)}')),
+      floatingActionButton: actual.saldoPendiente > 0
           ? FloatingActionButton.extended(
               onPressed: () async {
                 final registrado = await showDialog<bool>(
                   context: context,
-                  builder: (_) => RegistrarAbonoDialog(credito: credito),
+                  builder: (_) => RegistrarAbonoDialog(credito: actual),
                 );
-                if (registrado == true) {
-                  ref.invalidate(cuotasCreditoProvider(credito.id));
-                  ref.invalidate(abonosCreditoProvider(credito.id));
-                  ref.invalidate(creditosProvider);
-                }
+                if (registrado == true) _refrescar(ref, credito.id);
               },
               icon: const Icon(Icons.payments_rounded),
               label: const Text('REGISTRAR ABONO'),
@@ -121,7 +162,11 @@ class CreditoDetalleScreen extends ConsumerWidget {
               if (abonos.isEmpty) {
                 return const Text('SIN ABONOS TODAVÍA', style: TextStyle(color: AppColors.textoTerciario));
               }
-              return esEscritorio(context) ? _TablaAbonos(abonos: abonos) : _ListaAbonosMovil(abonos: abonos);
+              void editar(AbonoModel a) => _editar(context, ref, a);
+              void eliminar(AbonoModel a) => _eliminar(context, ref, a);
+              return esEscritorio(context)
+                  ? _TablaAbonos(abonos: abonos, onEditar: editar, onEliminar: eliminar)
+                  : _ListaAbonosMovil(abonos: abonos, onEditar: editar, onEliminar: eliminar);
             },
           ),
         ],
@@ -130,9 +175,37 @@ class CreditoDetalleScreen extends ConsumerWidget {
   }
 }
 
+class _AccionesAbono extends StatelessWidget {
+  final AbonoModel abono;
+  final void Function(AbonoModel) onEditar;
+  final void Function(AbonoModel) onEliminar;
+  const _AccionesAbono({required this.abono, required this.onEditar, required this.onEliminar});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.edit_rounded, size: 18, color: AppColors.textoSecundario),
+          tooltip: 'Editar pago',
+          onPressed: () => onEditar(abono),
+        ),
+        IconButton(
+          icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
+          tooltip: 'Eliminar pago',
+          onPressed: () => onEliminar(abono),
+        ),
+      ],
+    );
+  }
+}
+
 class _TablaAbonos extends StatelessWidget {
   final List<AbonoModel> abonos;
-  const _TablaAbonos({required this.abonos});
+  final void Function(AbonoModel) onEditar;
+  final void Function(AbonoModel) onEliminar;
+  const _TablaAbonos({required this.abonos, required this.onEditar, required this.onEliminar});
 
   @override
   Widget build(BuildContext context) {
@@ -147,15 +220,19 @@ class _TablaAbonos extends StatelessWidget {
             DataColumn(label: Text('INTERÉS')),
             DataColumn(label: Text('SALDO PENDIENTE')),
             DataColumn(label: Text('MÉTODO')),
+            DataColumn(label: Text('RECIBO')),
+            DataColumn(label: Text('')),
           ],
           rows: abonos
               .map((a) => DataRow(cells: [
-                    DataCell(Text(_fecha.format(a.fecha))),
+                    DataCell(Text(_fecha.format(a.fecha.toLocal()))),
                     DataCell(Text(_moneda.format(a.montoAbonado))),
                     DataCell(Text(_moneda.format(a.saldoAnterior))),
                     DataCell(Text(_moneda.format(a.interes))),
                     DataCell(Text(_moneda.format(a.saldoPendiente))),
                     DataCell(Text(a.metodoPago ?? '-')),
+                    DataCell(Text(a.numeroRecibo ?? '-')),
+                    DataCell(_AccionesAbono(abono: a, onEditar: onEditar, onEliminar: onEliminar)),
                   ]))
               .toList(),
         ),
@@ -166,7 +243,9 @@ class _TablaAbonos extends StatelessWidget {
 
 class _ListaAbonosMovil extends StatelessWidget {
   final List<AbonoModel> abonos;
-  const _ListaAbonosMovil({required this.abonos});
+  final void Function(AbonoModel) onEditar;
+  final void Function(AbonoModel) onEliminar;
+  const _ListaAbonosMovil({required this.abonos, required this.onEditar, required this.onEliminar});
 
   @override
   Widget build(BuildContext context) {
@@ -176,8 +255,12 @@ class _ListaAbonosMovil extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 8),
                 child: ListTile(
                   title: Text(_moneda.format(a.montoAbonado), style: const TextStyle(fontWeight: FontWeight.w700)),
-                  subtitle: Text('${_fecha.format(a.fecha)} · ${a.metodoPago ?? 'sin método'}'),
-                  trailing: Text('SALDO: ${_moneda.format(a.saldoPendiente)}', style: const TextStyle(fontSize: 12)),
+                  subtitle: Text(
+                    '${_fecha.format(a.fecha.toLocal())} · ${a.metodoPago ?? 'sin método'}'
+                    '${a.numeroRecibo != null ? ' · ${a.numeroRecibo}' : ''}\nSALDO: ${_moneda.format(a.saldoPendiente)}',
+                  ),
+                  isThreeLine: true,
+                  trailing: _AccionesAbono(abono: a, onEditar: onEditar, onEliminar: onEliminar),
                 ),
               ))
           .toList(),

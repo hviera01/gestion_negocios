@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../data/sistema_cliente_model.dart';
 import '../../providers/sistemas_provider.dart';
+import '../widgets/estado_servicio_dialog.dart';
 import '../widgets/nuevo_sistema_dialog.dart';
 import '../widgets/sistema_cliente_form_dialog.dart';
 
@@ -109,14 +110,46 @@ class _ListaVendidos extends ConsumerWidget {
                             ),
                             _ChipVersion(slug: sc.sistemaSlug),
                             const SizedBox(width: 6),
+                            IconButton(
+                              tooltip: 'Estado del sistema del cliente',
+                              visualDensity: VisualDensity.compact,
+                              icon: Icon(
+                                sc.estadoServicio == 'bloqueado' ? Icons.lock_rounded : Icons.lock_open_rounded,
+                                size: 18,
+                                color: colorEstadoServicio(sc.estadoServicio),
+                              ),
+                              onPressed: () async {
+                                final cambiado = await showDialog<bool>(
+                                  context: context,
+                                  builder: (_) => EstadoServicioDialog(venta: sc),
+                                );
+                                if (cambiado == true) ref.invalidate(sistemasClienteProvider(null));
+                              },
+                            ),
                             const Icon(Icons.edit_rounded, size: 16, color: AppColors.textoTerciario),
                           ],
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
+                        Text(
+                          (sc.clienteNombre ?? '').toUpperCase(),
+                          style: const TextStyle(color: AppColors.textoPrimario, fontSize: 13, fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 4),
                         Text(
                           _descripcionVenta(sc),
                           style: const TextStyle(color: AppColors.textoSecundario, fontSize: 13),
                         ),
+                        if (sc.estadoServicio != 'activo') ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            sc.estadoServicio == 'bloqueado' ? 'SISTEMA BLOQUEADO' : 'SISTEMA EN AVISO',
+                            style: TextStyle(
+                              color: colorEstadoServicio(sc.estadoServicio),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

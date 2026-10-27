@@ -12,6 +12,10 @@ class SistemaClienteModel {
   final double? montoMensual;
   final DateTime? fechaPrimerPago;
   final bool activo;
+  final String estadoServicio;
+  final String? mensajeServicio;
+  final String? codigoAcceso;
+  final String? clienteNombre;
 
   const SistemaClienteModel({
     required this.id,
@@ -27,6 +31,10 @@ class SistemaClienteModel {
     this.montoMensual,
     this.fechaPrimerPago,
     required this.activo,
+    this.estadoServicio = 'activo',
+    this.mensajeServicio,
+    this.codigoAcceso,
+    this.clienteNombre,
   });
 
   factory SistemaClienteModel.fromMap(Map<String, dynamic> map) => SistemaClienteModel(
@@ -43,5 +51,9 @@ class SistemaClienteModel {
         montoMensual: (map['monto_mensual'] as num?)?.toDouble(),
         fechaPrimerPago: map['fecha_primer_pago'] != null ? DateTime.parse(map['fecha_primer_pago'] as String) : null,
         activo: map['activo'] as bool? ?? true,
+        estadoServicio: map['estado_servicio'] as String? ?? 'activo',
+        mensajeServicio: map['mensaje_servicio'] as String?,
+        codigoAcceso: map['codigo_acceso'] as String?,
+        clienteNombre: map['cliente_nombre'] as String?,
       );
 }
