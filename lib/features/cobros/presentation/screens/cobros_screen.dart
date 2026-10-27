@@ -236,22 +236,25 @@ class _TarjetaCobro extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Row(
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  final ok = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => RegistrarPagoCobroDialog(cobro: cobro),
+                  );
+                  if (ok == true) onCambio();
+                },
+                icon: const Icon(Icons.check_rounded, size: 18),
+                label: const Text('MARCAR PAGADO', maxLines: 1, softWrap: false),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      final ok = await showDialog<bool>(
-                        context: context,
-                        builder: (_) => RegistrarPagoCobroDialog(cobro: cobro),
-                      );
-                      if (ok == true) onCambio();
-                    },
-                    icon: const Icon(Icons.check_rounded, size: 18),
-                    label: const Text('MARCAR PAGADO'),
-                  ),
-                ),
-                const SizedBox(width: 8),
                 OutlinedButton.icon(
                   onPressed: () async {
                     final ok = await showDialog<bool>(
@@ -263,20 +266,24 @@ class _TarjetaCobro extends ConsumerWidget {
                   icon: const Icon(Icons.edit_calendar_rounded, size: 18),
                   label: const Text('FECHA'),
                 ),
-                IconButton(
-                  tooltip: 'Historial de pagos',
-                  icon: const Icon(Icons.receipt_long_rounded, size: 20, color: AppColors.textoSecundario),
+                OutlinedButton.icon(
                   onPressed: () => _abrirHistorial(context, ref),
+                  icon: const Icon(Icons.receipt_long_rounded, size: 18),
+                  label: const Text('HISTORIAL DE PAGOS', maxLines: 1, softWrap: false),
                 ),
                 if (cobro.ventaId != null)
-                  IconButton(
-                    tooltip: 'Estado del sistema del cliente',
+                  OutlinedButton.icon(
+                    onPressed: () => _abrirEstadoServicio(context, ref),
                     icon: Icon(
                       cobro.estadoServicio == 'bloqueado' ? Icons.lock_rounded : Icons.lock_open_rounded,
-                      size: 20,
+                      size: 18,
                       color: colorEstadoServicio(cobro.estadoServicio ?? 'activo'),
                     ),
-                    onPressed: () => _abrirEstadoServicio(context, ref),
+                    label: Text(
+                      cobro.estadoServicio == 'bloqueado' ? 'BLOQUEADO' : 'BLOQUEAR',
+                      maxLines: 1,
+                      softWrap: false,
+                    ),
                   ),
               ],
             ),

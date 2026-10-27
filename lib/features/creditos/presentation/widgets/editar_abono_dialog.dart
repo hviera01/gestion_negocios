@@ -20,6 +20,7 @@ class EditarAbonoDialog extends ConsumerStatefulWidget {
 
 class _EditarAbonoDialogState extends ConsumerState<EditarAbonoDialog> {
   late final TextEditingController _montoCtrl;
+  late final FocusNode _montoFoco;
   late final TextEditingController _interesCtrl;
   late final TextEditingController _reciboCtrl;
   late DateTime _fecha;
@@ -32,6 +33,7 @@ class _EditarAbonoDialogState extends ConsumerState<EditarAbonoDialog> {
     super.initState();
     final a = widget.abono;
     _montoCtrl = TextEditingController(text: textoMonto(a.montoAbonado));
+    _montoFoco = focoMonto(_montoCtrl);
     _interesCtrl = TextEditingController(text: textoMonto(a.interes));
     _reciboCtrl = TextEditingController(text: a.numeroRecibo ?? '');
     _fecha = a.fecha.toLocal();
@@ -42,6 +44,7 @@ class _EditarAbonoDialogState extends ConsumerState<EditarAbonoDialog> {
   @override
   void dispose() {
     _montoCtrl.dispose();
+    _montoFoco.dispose();
     _interesCtrl.dispose();
     _reciboCtrl.dispose();
     super.dispose();
@@ -101,6 +104,7 @@ class _EditarAbonoDialogState extends ConsumerState<EditarAbonoDialog> {
             children: [
               TextField(
                 controller: _montoCtrl,
+                focusNode: _montoFoco,
                 keyboardType: TextInputType.number,
                 inputFormatters: [MontoFormatter()],
                 decoration: const InputDecoration(hintText: 'MONTO *'),

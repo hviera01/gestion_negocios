@@ -8,7 +8,6 @@ import '../../../../core/utils/monto_formatter.dart';
 import '../../data/cobro_model.dart';
 import '../../providers/cobros_provider.dart';
 
-final _moneda = NumberFormat.currency(locale: 'en_US', symbol: 'L.');
 final _fecha = DateFormat('dd/MM/yyyy');
 
 class RegistrarPagoCobroDialog extends ConsumerStatefulWidget {
@@ -21,6 +20,7 @@ class RegistrarPagoCobroDialog extends ConsumerStatefulWidget {
 
 class _RegistrarPagoCobroDialogState extends ConsumerState<RegistrarPagoCobroDialog> {
   late final TextEditingController _montoCtrl;
+  late final FocusNode _montoFoco;
   final _reciboCtrl = TextEditingController();
   String? _metodoPago;
   DateTime _fechaPago = DateTime.now();
@@ -31,6 +31,7 @@ class _RegistrarPagoCobroDialogState extends ConsumerState<RegistrarPagoCobroDia
   void initState() {
     super.initState();
     _montoCtrl = TextEditingController(text: textoMonto(widget.cobro.monto));
+    _montoFoco = focoMonto(_montoCtrl);
   }
 
   Future<void> _elegirFechaPago() async {
@@ -46,6 +47,7 @@ class _RegistrarPagoCobroDialogState extends ConsumerState<RegistrarPagoCobroDia
   @override
   void dispose() {
     _montoCtrl.dispose();
+    _montoFoco.dispose();
     _reciboCtrl.dispose();
     super.dispose();
   }
@@ -98,6 +100,7 @@ class _RegistrarPagoCobroDialogState extends ConsumerState<RegistrarPagoCobroDia
             const SizedBox(height: 14),
             TextField(
               controller: _montoCtrl,
+              focusNode: _montoFoco,
               keyboardType: TextInputType.number,
               inputFormatters: [MontoFormatter()],
               decoration: const InputDecoration(hintText: 'MONTO COBRADO *'),
@@ -154,7 +157,7 @@ class _RegistrarPagoCobroDialogState extends ConsumerState<RegistrarPagoCobroDia
           onPressed: _guardando ? null : _guardar,
           child: _guardando
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-              : Text('MARCAR PAGADO ${_moneda.format(widget.cobro.monto)}'),
+              : const Text('MARCAR PAGADO'),
         ),
       ],
     );
