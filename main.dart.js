@@ -32083,7 +32083,7 @@ $S:2}
 A.aLL.prototype={
 $1(a){var s=A.dF().b
 s=s==null?null:s.canvasKitBaseUrl
-return(s==null?"https://www.gstatic.com/flutter-canvaskit/af7e796e161ae0bb1ff0758c71a7105418bd9ded/":s)+a},
+return(s==null?"https://www.gstatic.com/flutter-canvaskit/cf636b1dfb818dd6a3ff16e390e93b1a036969c8/":s)+a},
 $S:46}
 A.PG.prototype={
 a2Z(){var s=this.amb(),r=$.bH.c_().ImageFilter.MakeColorFilter(s,null)
